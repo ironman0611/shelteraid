@@ -24,7 +24,7 @@ export function NearMeButton({ onPress }: Props) {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 80,
     right: 16,
     width: 52,
     height: 52,

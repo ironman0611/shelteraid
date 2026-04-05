@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   },
   countBadge: {
     position: 'absolute',
-    bottom: 24,
+    bottom: 80,
     left: 16,
     backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 12,

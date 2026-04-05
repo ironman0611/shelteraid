@@ -96,6 +96,7 @@ export function RootNavigator() {
         component={MapStackScreen}
         options={{
           title: 'Shelter Finder',
+          tabBarLabel: 'Map',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>🗺</Text>
           ),
@@ -106,6 +107,7 @@ export function RootNavigator() {
         component={SearchStackScreen}
         options={{
           title: 'Shelter Finder',
+          tabBarLabel: 'Search',
           tabBarIcon: ({ color, size }) => (
             <Text style={{ fontSize: size, color }}>🔍</Text>
           ),
