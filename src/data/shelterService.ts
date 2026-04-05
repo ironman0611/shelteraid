@@ -59,3 +59,16 @@ export function sortByDistance(
 export function sortAlphabetically(shelters: Shelter[]): Shelter[] {
   return [...shelters].sort((a, b) => a.name.localeCompare(b.name));
 }
+
+/** Count shelters per type (for badge counts) without creating new arrays */
+export function countByType(
+  shelters: Shelter[],
+): Record<ShelterType, number> {
+  const counts = { emergency: 0, transitional: 0, food: 0, medical: 0 };
+  for (const s of shelters) {
+    for (const t of s.type) {
+      counts[t]++;
+    }
+  }
+  return counts;
+}

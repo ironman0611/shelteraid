@@ -7,9 +7,11 @@ import {
   addDistances,
   sortByDistance,
   sortAlphabetically,
+  countByType,
 } from '../data/shelterService';
 
-const ALL_TYPES: ShelterType[] = ['emergency', 'transitional', 'food', 'medical'];
+const MAP_LIMIT = 200;
+const LIST_LIMIT = 50;
 
 interface UseSheltersResult {
   shelters: (Shelter | ShelterWithDistance)[];
@@ -18,34 +20,38 @@ interface UseSheltersResult {
   searchQuery: string;
   setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
   counts: Record<ShelterType, number>;
+  totalCount: number;
 }
 
 export function useShelters(
   userLat: number | null,
   userLon: number | null,
+  limit?: number,
 ): UseSheltersResult {
   const [filters, setFilters] = useState<ShelterType[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { shelters, counts } = useMemo(() => {
+  const { shelters, counts, totalCount } = useMemo(() => {
     let result: Shelter[] = loadShelters();
     result = searchShelters(result, searchQuery);
 
-    // Counts are computed after search but before type filtering
-    const counts = ALL_TYPES.reduce((acc, type) => {
-      acc[type] = result.filter((s) => s.type.includes(type)).length;
-      return acc;
-    }, {} as Record<ShelterType, number>);
+    // Counts — single pass, no extra arrays
+    const counts = countByType(result);
 
     result = filterByType(result, filters);
+    const totalCount = result.length;
 
     if (userLat != null && userLon != null) {
       const withDist = addDistances(result, userLat, userLon);
-      return { shelters: sortByDistance(withDist), counts };
+      const sorted = sortByDistance(withDist);
+      const cap = limit ?? MAP_LIMIT;
+      return { shelters: sorted.slice(0, cap), counts, totalCount };
     }
 
-    return { shelters: sortAlphabetically(result), counts };
-  }, [filters, searchQuery, userLat, userLon]);
+    const sorted = sortAlphabetically(result);
+    const cap = limit ?? LIST_LIMIT;
+    return { shelters: sorted.slice(0, cap), counts, totalCount };
+  }, [filters, searchQuery, userLat, userLon, limit]);
 
-  return { shelters, filters, setFilters, searchQuery, setSearchQuery, counts };
+  return { shelters, filters, setFilters, searchQuery, setSearchQuery, counts, totalCount };
 }

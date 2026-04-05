@@ -11,6 +11,8 @@ import { Shelter, ShelterType } from '../types/shelter';
 import { Colors } from '../constants/colors';
 import { Layout } from '../constants/layout';
 
+const PAGE_SIZE = 50;
+
 type SearchStackParamList = {
   SearchMain: undefined;
   Detail: { shelterId: string };
@@ -21,16 +23,22 @@ export function SearchScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<SearchStackParamList>>();
 
-  const { shelters, filters, setFilters, searchQuery, setSearchQuery, counts } =
+  const [listLimit, setListLimit] = useState(PAGE_SIZE);
+
+  const { shelters, filters, setFilters, searchQuery, setSearchQuery, counts, totalCount } =
     useShelters(
       location?.latitude ?? null,
       location?.longitude ?? null,
+      listLimit,
     );
 
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
   useEffect(() => {
-    const timer = setTimeout(() => setSearchQuery(debouncedQuery), 300);
+    const timer = setTimeout(() => {
+      setSearchQuery(debouncedQuery);
+      setListLimit(PAGE_SIZE); // reset pagination on new search
+    }, 300);
     return () => clearTimeout(timer);
   }, [debouncedQuery, setSearchQuery]);
 
@@ -41,9 +49,16 @@ export function SearchScreen() {
           ? prev.filter((t) => t !== type)
           : [...prev, type],
       );
+      setListLimit(PAGE_SIZE); // reset pagination on filter change
     },
     [setFilters],
   );
+
+  const handleLoadMore = useCallback(() => {
+    if (shelters.length < totalCount) {
+      setListLimit((prev) => prev + PAGE_SIZE);
+    }
+  }, [shelters.length, totalCount]);
 
   const renderItem = useCallback(
     ({ item }: { item: Shelter }) => (
@@ -67,10 +82,22 @@ export function SearchScreen() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
+        initialNumToRender={20}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
         ListEmptyComponent={
           <Text style={styles.empty}>
             No shelters found. Try a different search or filter.
           </Text>
+        }
+        ListFooterComponent={
+          shelters.length < totalCount ? (
+            <Text style={styles.loadMore}>
+              Showing {shelters.length} of {totalCount} — scroll for more
+            </Text>
+          ) : null
         }
       />
     </View>
@@ -91,5 +118,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     fontSize: Layout.fontSizeBody,
     marginTop: 40,
+  },
+  loadMore: {
+    textAlign: 'center',
+    color: Colors.textSecondary,
+    fontSize: 13,
+    paddingVertical: 16,
   },
 });

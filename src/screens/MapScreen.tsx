@@ -31,9 +31,10 @@ export function MapScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<MapStackParamList>>();
 
-  const { shelters, filters, setFilters, counts } = useShelters(
+  const { shelters, filters, setFilters, counts, totalCount } = useShelters(
     location?.latitude ?? null,
     location?.longitude ?? null,
+    200,
   );
 
   const region: Region = location
@@ -109,7 +110,11 @@ export function MapScreen() {
       </View>
 
       <View style={styles.countBadge}>
-        <Text style={styles.countText}>{shelters.length} shelters</Text>
+        <Text style={styles.countText}>
+          {shelters.length === totalCount
+            ? `${totalCount} shelters`
+            : `${shelters.length} of ${totalCount} shelters`}
+        </Text>
       </View>
 
       <NearMeButton onPress={handleNearMe} />
