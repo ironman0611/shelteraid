@@ -28,7 +28,7 @@ function nextId(prefix) {
 function fetch(url) {
   return new Promise((resolve, reject) => {
     const client = url.startsWith('https') ? https : http;
-    client.get(url, { headers: { 'User-Agent': 'ShelterFinder/1.0' } }, (res) => {
+    client.get(url, { headers: { 'User-Agent': 'ShelterAid/1.0' } }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         return fetch(res.headers.location).then(resolve).catch(reject);
       }
@@ -1586,7 +1586,7 @@ function validate(shelters) {
 
 // ─── Main ────────────────────────────────────────────────────────
 async function main() {
-  console.log('=== Shelter Finder: Fetching Real Data ===\n');
+  console.log('=== Shelter Aid: Fetching Real Data ===\n');
 
   const [nyc, dc, la] = await Promise.all([fetchNYC(), fetchDC(), fetchLA()]);
   const curated = getCuratedShelters();

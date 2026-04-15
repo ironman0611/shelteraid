@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle } from 'react-native';
-import { Colors } from '../constants/colors';
-import { Layout } from '../constants/layout';
+import { StyleSheet, View } from 'react-native';
+import { Button } from 'react-native-paper';
+import { useTheme } from '../theme/useTheme';
 
 interface Props {
   label: string;
@@ -11,54 +11,45 @@ interface Props {
 }
 
 export function ActionButton({ label, variant, onPress, accessibilityLabel }: Props) {
-  const buttonStyle: ViewStyle =
-    variant === 'primary' ? styles.primary : styles.secondary;
+  const theme = useTheme();
+  const primary = variant === 'primary';
 
   return (
-    <TouchableOpacity
-      style={[styles.button, buttonStyle]}
-      onPress={onPress}
-      activeOpacity={0.8}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? label}
-    >
-      <Text
+    <View style={styles.container}>
+      <Button
+        mode={primary ? 'contained' : 'outlined'}
+        onPress={onPress}
+        contentStyle={styles.content}
         style={[
-          styles.text,
-          variant === 'primary' ? styles.textPrimary : styles.textSecondary,
+          styles.button,
+          !primary && {
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surfaceElevated,
+          },
         ]}
+        labelStyle={[
+          styles.text,
+          { color: primary ? theme.colors.surface : theme.colors.text },
+        ]}
+        buttonColor={primary ? theme.colors.primary : undefined}
+        accessibilityLabel={accessibilityLabel ?? label}
       >
         {label}
-      </Text>
-    </TouchableOpacity>
+      </Button>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
+  container: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: Layout.minTapTarget,
   },
-  primary: {
-    backgroundColor: Colors.primary,
+  button: {
+    borderRadius: 12,
   },
-  secondary: {
-    backgroundColor: '#eff8ff',
-    borderWidth: 1.5,
-    borderColor: '#b2ddff',
-  },
+  content: { minHeight: 48 },
   text: {
-    fontSize: Layout.fontSizeBody,
+    fontSize: 15,
     fontWeight: '600',
-  },
-  textPrimary: {
-    color: '#fff',
-  },
-  textSecondary: {
-    color: '#175cd3',
   },
 });

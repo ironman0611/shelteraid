@@ -1,8 +1,8 @@
 import React from 'react';
-import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Chip } from 'react-native-paper';
 import { ShelterType } from '../types/shelter';
-import { Colors } from '../constants/colors';
-import { Layout } from '../constants/layout';
+import { useTheme } from '../theme/useTheme';
 
 const FILTER_OPTIONS: { label: string; value: ShelterType }[] = [
   { label: 'Emergency', value: 'emergency' },
@@ -18,73 +18,73 @@ interface Props {
 }
 
 export function FilterChips({ selected, onToggle, counts }: Props) {
+  const theme = useTheme();
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
+    <View
+      style={[
+        styles.wrapper,
+        { backgroundColor: theme.colors.primarySoft, borderBottomColor: theme.colors.border },
+      ]}
     >
-      {FILTER_OPTIONS.map((opt) => {
-        const active = selected.includes(opt.value);
-        const count = counts?.[opt.value];
-        return (
-          <TouchableOpacity
-            key={opt.value}
-            style={[styles.chip, active && styles.chipActive]}
-            onPress={() => onToggle(opt.value)}
-            accessibilityRole="button"
-            accessibilityLabel={`Filter by ${opt.label}${count != null ? `, ${count} available` : ''}`}
-            accessibilityState={{ selected: active }}
-          >
-            <Text style={[styles.chipText, active && styles.chipTextActive]}>
-              {opt.label}
-              {count != null && (
-                <Text style={[styles.countText, active && styles.countTextActive]}>
-                  {' '}({count})
-                </Text>
-              )}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </ScrollView>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.container}
+      >
+        {FILTER_OPTIONS.map((opt) => {
+          const active = selected.includes(opt.value);
+          const count = counts?.[opt.value];
+          const label = `${opt.label}${count != null ? ` (${count})` : ''}`;
+
+          return (
+            <View key={opt.value}>
+              <Chip
+                selected={active}
+                onPress={() => onToggle(opt.value)}
+                mode={active ? 'flat' : 'outlined'}
+                compact={false}
+                showSelectedCheck={false}
+                style={[
+                  styles.chip,
+                  active
+                    ? { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+                    : { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                ]}
+                textStyle={[
+                  styles.chipText,
+                  { color: active ? theme.colors.surface : theme.colors.textSecondary },
+                ]}
+                accessibilityLabel={`Filter by ${opt.label}${count != null ? `, ${count} available` : ''}`}
+              >
+                {label}
+              </Chip>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    borderBottomWidth: 1,
+  },
   container: {
-    paddingHorizontal: Layout.screenPadding,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     gap: 8,
   },
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: Layout.chipBorderRadius,
-    borderWidth: 1.5,
-    borderColor: '#d0d5dd',
-    backgroundColor: Colors.surface,
-    minHeight: Layout.minTapTarget,
+    borderRadius: 22,
+    minHeight: 42,
+    minWidth: 128,
+    paddingHorizontal: 10,
     justifyContent: 'center',
   },
-  chipActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
   chipText: {
-    fontSize: Layout.fontSizeSmall,
+    fontSize: 13,
     fontWeight: '500',
-    color: Colors.textTertiary,
-  },
-  chipTextActive: {
-    color: '#fff',
-  },
-  countText: {
-    fontSize: Layout.fontSizeXSmall,
-    fontWeight: '400',
-    color: Colors.textSecondary,
-  },
-  countTextActive: {
-    color: 'rgba(255,255,255,0.8)',
+    lineHeight: 18,
   },
 });

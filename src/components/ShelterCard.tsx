@@ -1,81 +1,96 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Card } from 'react-native-paper';
 import { Shelter, ShelterWithDistance } from '../types/shelter';
 import { ServiceTag } from './ServiceTag';
-import { Colors } from '../constants/colors';
-import { Layout } from '../constants/layout';
 import { formatDistance } from '../data/distanceUtils';
+import { useTheme } from '../theme/useTheme';
 
 interface Props {
   shelter: Shelter | ShelterWithDistance;
   onPress: () => void;
 }
 
-function getStatusStyle(status: Shelter['status']) {
+function getStatusStyle(status: Shelter['status'], theme: ReturnType<typeof useTheme>) {
   switch (status) {
     case 'open':
-      return { color: Colors.statusOpen, label: 'Open' };
+      return { color: theme.colors.statusOpen, label: 'Open' };
     case 'limited':
-      return { color: Colors.statusLimited, label: 'Limited Space' };
+      return { color: theme.colors.statusLimited, label: 'Limited Space' };
     case 'closed':
-      return { color: Colors.statusClosed, label: 'Closed' };
+      return { color: theme.colors.statusClosed, label: 'Closed' };
   }
 }
 
 export function ShelterCard({ shelter, onPress }: Props) {
-  const statusInfo = getStatusStyle(shelter.status);
+  const theme = useTheme();
+  const statusInfo = getStatusStyle(shelter.status, theme);
   const distance = 'distance' in shelter ? shelter.distance : null;
 
   return (
-    <TouchableOpacity
-      style={styles.card}
+    <Card
+      mode="contained"
+      style={[
+        styles.card,
+        { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.border },
+      ]}
       onPress={onPress}
-      activeOpacity={0.7}
-      accessibilityRole="button"
       accessibilityLabel={`${shelter.name}, ${statusInfo.label}`}
     >
-      <View style={styles.header}>
-        <Text style={styles.name} numberOfLines={2}>
-          {shelter.name}
-        </Text>
-        {distance != null && (
-          <Text style={styles.distance}>{formatDistance(distance)}</Text>
-        )}
-      </View>
-
-      <Text style={styles.address} numberOfLines={1}>
-        {shelter.address.street}, {shelter.address.city},{' '}
-        {shelter.address.state}
-      </Text>
-
-      <View style={styles.tags}>
-        {shelter.type.map((t) => (
-          <ServiceTag key={t} type={t} />
-        ))}
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={[styles.status, { color: statusInfo.color }]}>
-          {statusInfo.label}
-        </Text>
-        {shelter.capacity.totalBeds > 0 && (
-          <Text style={styles.beds}>
-            {shelter.capacity.totalBeds} beds
+      <Card.Content>
+        <View style={styles.header}>
+          <Text style={[styles.name, { color: theme.colors.text }]} numberOfLines={2}>
+            {shelter.name}
           </Text>
-        )}
-      </View>
-    </TouchableOpacity>
+          {distance != null && (
+            <Text
+              style={[
+                styles.distance,
+                {
+                  color: theme.colors.primary,
+                  backgroundColor: theme.colors.surfaceElevated,
+                },
+              ]}
+            >
+              {formatDistance(distance)}
+            </Text>
+          )}
+        </View>
+
+        <Text
+          style={[styles.address, { color: theme.colors.textSecondary }]}
+          numberOfLines={1}
+        >
+          {shelter.address.street}, {shelter.address.city}, {shelter.address.state}
+        </Text>
+
+        <View style={styles.tags}>
+          {shelter.type.map((t) => (
+            <ServiceTag key={t} type={t} />
+          ))}
+        </View>
+
+        <View style={[styles.footer, { borderTopColor: theme.colors.borderLight }]}>
+          <Text style={[styles.status, { color: statusInfo.color }]}>
+            {statusInfo.label}
+          </Text>
+          {shelter.capacity.totalBeds > 0 && (
+            <Text style={[styles.beds, { color: theme.colors.primary }]}>
+              {shelter.capacity.totalBeds} beds
+            </Text>
+          )}
+        </View>
+      </Card.Content>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    borderRadius: Layout.borderRadius,
-    padding: Layout.cardPadding,
+    borderRadius: 16,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
@@ -85,19 +100,19 @@ const styles = StyleSheet.create({
   },
   name: {
     flex: 1,
-    fontSize: Layout.fontSizeH3,
+    fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
     lineHeight: 21,
   },
   distance: {
-    fontSize: Layout.fontSizeXSmall,
-    color: Colors.textSecondary,
+    fontSize: 12,
     fontWeight: '500',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
   },
   address: {
-    fontSize: Layout.fontSizeSmall,
-    color: Colors.textSecondary,
+    fontSize: 13,
     marginTop: 4,
   },
   tags: {
@@ -113,14 +128,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
+    borderTopColor: 'transparent',
   },
   status: {
-    fontSize: Layout.fontSizeSmall,
+    fontSize: 13,
     fontWeight: '500',
   },
   beds: {
-    fontSize: Layout.fontSizeSmall,
-    color: Colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

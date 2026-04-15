@@ -1,12 +1,13 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Icon } from 'react-native-paper';
 import { MapScreen } from '../screens/MapScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { DetailScreen } from '../screens/DetailScreen';
-import { Colors } from '../constants/colors';
-import { Layout } from '../constants/layout';
+import { useTheme } from '../theme/useTheme';
 
 // Map Stack
 type MapStackParamList = {
@@ -17,20 +18,48 @@ type MapStackParamList = {
 const MapStack = createNativeStackNavigator<MapStackParamList>();
 
 function MapStackScreen() {
+  const theme = useTheme();
   return (
     <MapStack.Navigator>
       <MapStack.Screen
         name="MapMain"
         component={MapScreen}
-        options={{ headerShown: false }}
+        options={{
+          title: 'Shelter Aid',
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.surface,
+          headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
+        }}
       />
       <MapStack.Screen
         name="Detail"
         component={DetailScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Shelter Details',
-          headerTintColor: Colors.primary,
-        }}
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.surface,
+          headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
+          headerBackVisible: false,
+          headerLeft: () => (
+            <Pressable
+              onPress={() => navigation.goBack()}
+              hitSlop={10}
+              style={{
+                marginRight: 6,
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: theme.colors.primarySoft,
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <Icon source="arrow-left" size={18} color={theme.colors.primary} />
+            </Pressable>
+          ),
+        })}
       />
     </MapStack.Navigator>
   );
@@ -45,20 +74,48 @@ type SearchStackParamList = {
 const SearchStack = createNativeStackNavigator<SearchStackParamList>();
 
 function SearchStackScreen() {
+  const theme = useTheme();
   return (
     <SearchStack.Navigator>
       <SearchStack.Screen
         name="SearchMain"
         component={SearchScreen}
-        options={{ headerShown: false }}
+        options={{
+          title: 'Shelter Aid',
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.surface,
+          headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
+        }}
       />
       <SearchStack.Screen
         name="Detail"
         component={DetailScreen}
-        options={{
+        options={({ navigation }) => ({
           title: 'Shelter Details',
-          headerTintColor: Colors.primary,
-        }}
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.surface,
+          headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
+          headerBackVisible: false,
+          headerLeft: () => (
+            <Pressable
+              onPress={() => navigation.goBack()}
+              hitSlop={10}
+              style={{
+                marginRight: 6,
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: theme.colors.primarySoft,
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <Icon source="arrow-left" size={18} color={theme.colors.primary} />
+            </Pressable>
+          ),
+        })}
       />
     </SearchStack.Navigator>
   );
@@ -68,37 +125,69 @@ function SearchStackScreen() {
 const Tab = createBottomTabNavigator();
 
 export function RootNavigator() {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const baseTabBarHeight = Platform.OS === 'ios' ? 58 : 56;
+  const bottomInset = Platform.OS === 'ios' ? Math.max(insets.bottom, 10) : 0;
+
   return (
     <Tab.Navigator
       screenOptions={{
+        headerShown: false,
         headerStyle: {
-          backgroundColor: Colors.primary,
+          backgroundColor: theme.colors.primary,
         },
-        headerTintColor: '#fff',
+        headerTintColor: theme.colors.surface,
         headerTitleStyle: {
+          color: theme.colors.surface,
           fontWeight: '600',
         },
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textSecondary,
+        tabBarActiveTintColor: theme.colors.surface,
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.65)',
         tabBarStyle: {
-          height: Layout.tabBarHeight,
-          paddingBottom: 6,
+          height: baseTabBarHeight + bottomInset,
+          paddingBottom: Math.max(bottomInset, 8),
           paddingTop: 6,
+          backgroundColor: theme.colors.primary,
+          borderTopColor: theme.colors.primary,
+          borderTopWidth: 1,
+        },
+        tabBarItemStyle: {
+          flex: 1,
+          minHeight: 40,
+          justifyContent: 'center',
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
+          lineHeight: 14,
+          fontWeight: '600',
+          marginBottom: 1,
         },
+        tabBarHideOnKeyboard: Platform.OS === 'ios',
       }}
     >
       <Tab.Screen
         name="Map"
         component={MapStackScreen}
         options={{
-          title: 'Shelter Finder',
           tabBarLabel: 'Map',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>🗺</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center', width: 48 }}>
+              <View
+                style={{
+                  height: 3,
+                  width: 22,
+                  borderRadius: 999,
+                  marginBottom: 4,
+                  backgroundColor: focused ? theme.colors.surface : 'transparent',
+                }}
+              />
+              <Icon
+                source={focused ? 'map-marker' : 'map-marker-outline'}
+                size={size}
+                color={color}
+              />
+            </View>
           ),
         }}
       />
@@ -106,10 +195,20 @@ export function RootNavigator() {
         name="Search"
         component={SearchStackScreen}
         options={{
-          title: 'Shelter Finder',
           tabBarLabel: 'Search',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ fontSize: size, color }}>🔍</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center', width: 48 }}>
+              <View
+                style={{
+                  height: 3,
+                  width: 22,
+                  borderRadius: 999,
+                  marginBottom: 4,
+                  backgroundColor: focused ? theme.colors.surface : 'transparent',
+                }}
+              />
+              <Icon source="magnify" size={focused ? size + 1 : size} color={color} />
+            </View>
           ),
         }}
       />

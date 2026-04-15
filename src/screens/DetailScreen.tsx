@@ -6,44 +6,51 @@ import { ServiceTag } from '../components/ServiceTag';
 import { ActionButton } from '../components/ActionButton';
 import { loadShelters } from '../data/shelterService';
 import { openDialer, openDirections, openWebsite } from '../utils/linking';
-import { Colors } from '../constants/colors';
 import { Layout } from '../constants/layout';
+import { useTheme } from '../theme/useTheme';
 
 type DetailParamList = {
   Detail: { shelterId: string };
 };
 
-function getStatusInfo(status: 'open' | 'limited' | 'closed') {
+function getStatusInfo(
+  status: 'open' | 'limited' | 'closed',
+  theme: ReturnType<typeof useTheme>,
+) {
   switch (status) {
     case 'open':
-      return { color: Colors.statusOpen, label: 'Open Now' };
+      return { color: theme.colors.statusOpen, label: 'Open Now' };
     case 'limited':
-      return { color: Colors.statusLimited, label: 'Limited Space' };
+      return { color: theme.colors.statusLimited, label: 'Limited Space' };
     case 'closed':
-      return { color: Colors.statusClosed, label: 'Closed' };
+      return { color: theme.colors.statusClosed, label: 'Closed' };
   }
 }
 
 export function DetailScreen() {
+  const theme = useTheme();
   const route = useRoute<RouteProp<DetailParamList, 'Detail'>>();
   const shelter = loadShelters().find((s) => s.id === route.params.shelterId);
 
   if (!shelter) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Shelter not found.</Text>
+      <View style={[styles.container, { backgroundColor: theme.colors.surface }]}>
+        <Text style={[styles.errorText, { color: theme.colors.textSecondary }]}>Shelter not found.</Text>
       </View>
     );
   }
 
-  const statusInfo = getStatusInfo(shelter.status);
+  const statusInfo = getStatusInfo(shelter.status, theme);
   const fullAddress = `${shelter.address.street}, ${shelter.address.city}, ${shelter.address.state} ${shelter.address.zip}`;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.colors.surface }]}
+      contentContainerStyle={styles.content}
+    >
       {/* Header */}
-      <Text style={styles.name}>{shelter.name}</Text>
-      <Text style={styles.org}>{shelter.organizationName}</Text>
+      <Text style={[styles.name, { color: theme.colors.text }]}>{shelter.name}</Text>
+      <Text style={[styles.org, { color: theme.colors.textSecondary }]}>{shelter.organizationName}</Text>
       <View style={styles.statusRow}>
         <View style={[styles.statusDot, { backgroundColor: statusInfo.color }]} />
         <Text style={[styles.statusText, { color: statusInfo.color }]}>
@@ -52,7 +59,7 @@ export function DetailScreen() {
       </View>
 
       {/* Mini Map */}
-      <View style={styles.mapContainer}>
+      <View style={[styles.mapContainer, { borderColor: theme.colors.border }]}>
         <MapView
           style={styles.miniMap}
           initialRegion={{
@@ -72,16 +79,16 @@ export function DetailScreen() {
 
       {/* Address */}
       <Section title="Address">
-        <Text style={styles.bodyText}>{fullAddress}</Text>
+        <Text style={[styles.bodyText, { color: theme.colors.text }]}>{fullAddress}</Text>
       </Section>
 
       {/* Hours & Eligibility */}
       <Section title="Hours">
-        <Text style={styles.bodyText}>{shelter.hours}</Text>
+        <Text style={[styles.bodyText, { color: theme.colors.text }]}>{shelter.hours}</Text>
       </Section>
 
       <Section title="Eligibility">
-        <Text style={styles.bodyText}>{shelter.eligibility}</Text>
+        <Text style={[styles.bodyText, { color: theme.colors.text }]}>{shelter.eligibility}</Text>
       </Section>
 
       {/* Capacity */}
@@ -109,8 +116,17 @@ export function DetailScreen() {
         <Section title="Services">
           <View style={styles.servicesList}>
             {shelter.services.map((s) => (
-              <View key={s} style={styles.serviceBadge}>
-                <Text style={styles.serviceBadgeText}>{s}</Text>
+              <View
+                key={s}
+                style={[
+                  styles.serviceBadge,
+                  {
+                    backgroundColor: theme.colors.primarySoft,
+                    borderColor: theme.colors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.serviceBadgeText, { color: theme.colors.primary }]}>{s}</Text>
               </View>
             ))}
           </View>
@@ -150,7 +166,7 @@ export function DetailScreen() {
         />
       )}
 
-      <Text style={styles.lastUpdated}>
+      <Text style={[styles.lastUpdated, { color: theme.colors.textSecondary }]}>
         Last updated: {shelter.lastUpdated}
       </Text>
     </ScrollView>
@@ -158,19 +174,21 @@ export function DetailScreen() {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const theme = useTheme();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { color: theme.colors.textSecondary }]}>{title}</Text>
       {children}
     </View>
   );
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
+  const theme = useTheme();
   return (
     <View style={styles.detailRow}>
-      <Text style={styles.detailLabel}>{label}</Text>
-      <Text style={styles.detailValue}>{value}</Text>
+      <Text style={[styles.detailLabel, { color: theme.colors.textTertiary }]}>{label}</Text>
+      <Text style={[styles.detailValue, { color: theme.colors.text }]}>{value}</Text>
     </View>
   );
 }
@@ -178,7 +196,6 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.surface,
   },
   content: {
     padding: Layout.screenPadding,
@@ -187,18 +204,15 @@ const styles = StyleSheet.create({
   errorText: {
     textAlign: 'center',
     marginTop: 40,
-    color: Colors.textSecondary,
     fontSize: Layout.fontSizeBody,
   },
   name: {
     fontSize: 22,
     fontWeight: '700',
-    color: Colors.text,
     lineHeight: 28,
   },
   org: {
     fontSize: Layout.fontSizeSmall,
-    color: Colors.textSecondary,
     marginTop: 2,
   },
   statusRow: {
@@ -221,7 +235,6 @@ const styles = StyleSheet.create({
     borderRadius: Layout.borderRadius,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: Colors.border,
   },
   miniMap: {
     height: 150,
@@ -232,14 +245,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: Layout.fontSizeXSmall,
     fontWeight: '600',
-    color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 6,
   },
   bodyText: {
     fontSize: Layout.fontSizeBody,
-    color: Colors.text,
     lineHeight: 22,
   },
   detailRow: {
@@ -249,12 +260,10 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: Layout.fontSizeBody,
-    color: Colors.textTertiary,
     fontWeight: '500',
   },
   detailValue: {
     fontSize: Layout.fontSizeBody,
-    color: Colors.text,
   },
   tagRow: {
     flexDirection: 'row',
@@ -267,14 +276,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   serviceBadge: {
-    backgroundColor: Colors.primaryBg,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
+    borderWidth: 1,
   },
   serviceBadgeText: {
     fontSize: Layout.fontSizeXSmall,
-    color: Colors.primary,
     fontWeight: '500',
     textTransform: 'capitalize',
   },
@@ -285,7 +293,6 @@ const styles = StyleSheet.create({
   },
   lastUpdated: {
     fontSize: Layout.fontSizeXSmall,
-    color: Colors.textSecondary,
     textAlign: 'center',
     marginTop: 24,
   },

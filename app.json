@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "Shelter Finder",
-    "slug": "shelter-finder",
+    "name": "Shelter Aid",
+    "slug": "shelteraid",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "scheme": "shelterfinder",
+    "scheme": "shelteraid",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-screen.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2d6a4f"
+      "backgroundColor": "#1f7a5f"
     },
     "ios": {
       "supportsTablet": true,

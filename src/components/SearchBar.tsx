@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
-import { Colors } from '../constants/colors';
-import { Layout } from '../constants/layout';
+import { StyleSheet, View } from 'react-native';
+import { Searchbar } from 'react-native-paper';
+import { useTheme } from '../theme/useTheme';
 
 interface Props {
   value: string;
@@ -10,16 +10,22 @@ interface Props {
 }
 
 export function SearchBar({ value, onChangeText, placeholder }: Props) {
+  const theme = useTheme();
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
+      <Searchbar
+        mode="bar"
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder ?? 'Search city, zip, or shelter name...'}
-        placeholderTextColor={Colors.textSecondary}
-        returnKeyType="search"
-        autoCorrect={false}
+        inputStyle={{ color: theme.colors.text }}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.surfaceElevated,
+            borderColor: theme.colors.border,
+          },
+        ]}
         accessibilityLabel="Search shelters"
       />
     </View>
@@ -28,19 +34,12 @@ export function SearchBar({ value, onChangeText, placeholder }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: Layout.screenPadding,
+    paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 4,
+    paddingBottom: 8,
   },
   input: {
-    backgroundColor: Colors.surface,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: Layout.fontSizeBody,
-    color: Colors.text,
-    minHeight: Layout.minTapTarget,
+    borderWidth: 1,
+    borderRadius: 14,
   },
 });

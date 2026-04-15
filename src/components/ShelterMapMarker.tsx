@@ -3,20 +3,22 @@ import { View, StyleSheet } from 'react-native';
 import { Marker, Callout } from 'react-native-maps';
 import { Text } from 'react-native';
 import { Shelter, ShelterType } from '../types/shelter';
-import { Colors } from '../constants/colors';
+import { useTheme } from '../theme/useTheme';
 
-const TYPE_COLORS: Record<ShelterType, string> = {
-  emergency: Colors.markerEmergency,
-  transitional: Colors.markerTransitional,
-  food: Colors.markerFood,
-  medical: Colors.markerMedical,
-};
-
-function getPrimaryColor(types: ShelterType[]): string {
+function getPrimaryColor(
+  types: ShelterType[],
+  theme: ReturnType<typeof useTheme>,
+): string {
+  const typeColors: Record<ShelterType, string> = {
+    emergency: theme.colors.statusClosed,
+    transitional: theme.colors.tagTransitional.text,
+    food: theme.colors.statusLimited,
+    medical: theme.colors.tagMedical.text,
+  };
   for (const t of types) {
-    if (TYPE_COLORS[t]) return TYPE_COLORS[t];
+    if (typeColors[t]) return typeColors[t];
   }
-  return Colors.primary;
+  return theme.colors.primary;
 }
 
 interface Props {
@@ -26,7 +28,8 @@ interface Props {
 }
 
 export function ShelterMapMarker({ shelter, distanceLabel, onCalloutPress }: Props) {
-  const color = getPrimaryColor(shelter.type);
+  const theme = useTheme();
+  const color = getPrimaryColor(shelter.type, theme);
 
   return (
     <Marker
@@ -36,13 +39,15 @@ export function ShelterMapMarker({ shelter, distanceLabel, onCalloutPress }: Pro
     >
       <Callout onPress={onCalloutPress} tooltip={false}>
         <View style={styles.callout}>
-          <Text style={styles.calloutName} numberOfLines={2}>
+          <Text style={[styles.calloutName, { color: theme.colors.text }]} numberOfLines={2}>
             {shelter.name}
           </Text>
           {distanceLabel && (
-            <Text style={styles.calloutDistance}>{distanceLabel}</Text>
+            <Text style={[styles.calloutDistance, { color: theme.colors.textSecondary }]}>
+              {distanceLabel}
+            </Text>
           )}
-          <Text style={styles.calloutHint}>Tap for details</Text>
+          <Text style={[styles.calloutHint, { color: theme.colors.primary }]}>Tap for details</Text>
         </View>
       </Callout>
     </Marker>
@@ -57,17 +62,14 @@ const styles = StyleSheet.create({
   calloutName: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.text,
     marginBottom: 2,
   },
   calloutDistance: {
     fontSize: 12,
-    color: Colors.textSecondary,
     marginBottom: 4,
   },
   calloutHint: {
     fontSize: 11,
-    color: Colors.primary,
     fontWeight: '500',
   },
 });

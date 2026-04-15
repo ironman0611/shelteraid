@@ -8,8 +8,7 @@ import { ShelterCard } from '../components/ShelterCard';
 import { useLocation } from '../hooks/useLocation';
 import { useShelters } from '../hooks/useShelters';
 import { Shelter, ShelterType } from '../types/shelter';
-import { Colors } from '../constants/colors';
-import { Layout } from '../constants/layout';
+import { useTheme } from '../theme/useTheme';
 
 const PAGE_SIZE = 50;
 
@@ -19,6 +18,7 @@ type SearchStackParamList = {
 };
 
 export function SearchScreen() {
+  const theme = useTheme();
   const { location } = useLocation();
   const navigation =
     useNavigation<NativeStackNavigationProp<SearchStackParamList>>();
@@ -73,7 +73,7 @@ export function SearchScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <SearchBar value={debouncedQuery} onChangeText={setDebouncedQuery} />
       <FilterChips selected={filters} onToggle={handleToggleFilter} counts={counts} />
 
@@ -88,13 +88,13 @@ export function SearchScreen() {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
-          <Text style={styles.empty}>
+          <Text style={[styles.empty, { color: theme.colors.textSecondary }]}>
             No shelters found. Try a different search or filter.
           </Text>
         }
         ListFooterComponent={
           shelters.length < totalCount ? (
-            <Text style={styles.loadMore}>
+            <Text style={[styles.loadMore, { color: theme.colors.textSecondary }]}>
               Showing {shelters.length} of {totalCount} — scroll for more
             </Text>
           ) : null
@@ -107,21 +107,18 @@ export function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   list: {
-    padding: Layout.screenPadding,
+    padding: 16,
     paddingTop: 8,
   },
   empty: {
     textAlign: 'center',
-    color: Colors.textSecondary,
-    fontSize: Layout.fontSizeBody,
+    fontSize: 15,
     marginTop: 40,
   },
   loadMore: {
     textAlign: 'center',
-    color: Colors.textSecondary,
     fontSize: 13,
     paddingVertical: 16,
   },

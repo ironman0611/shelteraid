@@ -4,6 +4,7 @@ import MapView, { Region } from 'react-native-maps';
 import ClusteredMapView from 'react-native-map-clustering';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShelterMapMarker } from '../components/ShelterMapMarker';
 import { FilterChips } from '../components/FilterChips';
 import { NearMeButton } from '../components/NearMeButton';
@@ -11,7 +12,7 @@ import { useLocation } from '../hooks/useLocation';
 import { useShelters } from '../hooks/useShelters';
 import { ShelterType, ShelterWithDistance } from '../types/shelter';
 import { formatDistance } from '../data/distanceUtils';
-import { Colors } from '../constants/colors';
+import { useTheme } from '../theme/useTheme';
 
 type MapStackParamList = {
   MapMain: undefined;
@@ -26,6 +27,8 @@ const DEFAULT_REGION: Region = {
 };
 
 export function MapScreen() {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const { location, requestPermission } = useLocation();
   const navigation =
@@ -74,15 +77,15 @@ export function MapScreen() {
   }, [location, requestPermission]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ClusteredMapView
         ref={mapRef}
         style={styles.map}
         initialRegion={region}
         showsUserLocation
         showsMyLocationButton={false}
-        clusterColor={Colors.primary}
-        clusterTextColor="#fff"
+        clusterColor={theme.colors.primary}
+        clusterTextColor={theme.colors.surface}
         clusterFontFamily="System"
         radius={50}
         minZoomLevel={0}
@@ -105,12 +108,26 @@ export function MapScreen() {
         ))}
       </ClusteredMapView>
 
-      <View style={styles.filterOverlay}>
+      <View
+        style={[
+          styles.filterOverlay,
+          { backgroundColor: theme.colors.primarySoft, shadowColor: theme.colors.shadow },
+        ]}
+      >
         <FilterChips selected={filters} onToggle={handleToggleFilter} counts={counts} />
       </View>
 
-      <View style={styles.countBadge}>
-        <Text style={styles.countText}>
+      <View
+        style={[
+          styles.countBadge,
+          {
+            backgroundColor: theme.colors.primarySoft,
+            borderColor: theme.colors.border,
+            bottom: insets.bottom + 18,
+          },
+        ]}
+      >
+        <Text style={[styles.countText, { color: theme.colors.primary }]}>
           {shelters.length === totalCount
             ? `${totalCount} shelters`
             : `${shelters.length} of ${totalCount} shelters`}
@@ -125,7 +142,6 @@ export function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   map: {
     flex: 1,
@@ -135,8 +151,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -144,15 +158,13 @@ const styles = StyleSheet.create({
   },
   countBadge: {
     position: 'absolute',
-    bottom: 80,
     left: 16,
-    backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    borderWidth: 1,
   },
   countText: {
-    color: '#fff',
     fontSize: 13,
     fontWeight: '500',
   },

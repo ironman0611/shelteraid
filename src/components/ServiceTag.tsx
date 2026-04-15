@@ -1,14 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ShelterType } from '../types/shelter';
-import { Colors } from '../constants/colors';
-
-const TAG_STYLES: Record<ShelterType, { bg: string; text: string }> = {
-  emergency: Colors.tagEmergency,
-  transitional: Colors.tagTransitional,
-  food: Colors.tagFood,
-  medical: Colors.tagMedical,
-};
+import { useTheme } from '../theme/useTheme';
 
 const TAG_LABELS: Record<ShelterType, string> = {
   emergency: 'Emergency',
@@ -22,7 +15,14 @@ interface Props {
 }
 
 export function ServiceTag({ type }: Props) {
-  const colors = TAG_STYLES[type];
+  const theme = useTheme();
+  const tagStyles: Record<ShelterType, { bg: string; text: string }> = {
+    emergency: theme.colors.tagEmergency,
+    transitional: theme.colors.tagTransitional,
+    food: theme.colors.tagFood,
+    medical: theme.colors.tagMedical,
+  };
+  const colors = tagStyles[type];
   return (
     <View style={[styles.tag, { backgroundColor: colors.bg }]}>
       <Text style={[styles.text, { color: colors.text }]}>
