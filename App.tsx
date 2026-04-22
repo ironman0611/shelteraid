@@ -1,18 +1,47 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
+import { CreditsSplash, CREDITS_SPLASH_DURATION_MS } from './src/components/CreditsSplash';
+import { MySheltersProvider } from './src/context/MySheltersContext';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { ThemeProvider, useThemeContext } from './src/theme/ThemeProvider';
 
 export default function App() {
+  const [showCreditsSplash, setShowCreditsSplash] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    let holdTimer: ReturnType<typeof setTimeout>;
+
+    const run = async () => {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      await SplashScreen.hideAsync().catch(() => {});
+      if (cancelled) return;
+      holdTimer = setTimeout(() => {
+        if (!cancelled) setShowCreditsSplash(false);
+      }, CREDITS_SPLASH_DURATION_MS);
+    };
+
+    void run();
+    return () => {
+      cancelled = true;
+      clearTimeout(holdTimer);
+    };
+  }, []);
+
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <ThemedApp />
-      </ThemeProvider>
+      {showCreditsSplash ? (
+        <CreditsSplash />
+      ) : (
+        <ThemeProvider>
+          <ThemedApp />
+        </ThemeProvider>
+      )}
     </SafeAreaProvider>
   );
 }
@@ -56,6 +85,7 @@ function ThemedApp() {
 
   return (
     <PaperProvider theme={paperTheme}>
+      <MySheltersProvider>
       <NavigationContainer
         theme={{
           ...DefaultTheme,
@@ -75,6 +105,7 @@ function ThemedApp() {
         <StatusBar style={theme.isDark ? 'light' : 'dark'} />
         <RootNavigator />
       </NavigationContainer>
+      </MySheltersProvider>
     </PaperProvider>
   );
 }

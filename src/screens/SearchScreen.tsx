@@ -64,6 +64,7 @@ export function SearchScreen() {
     ({ item }: { item: Shelter }) => (
       <ShelterCard
         shelter={item}
+        showSavedBadge
         onPress={() =>
           navigation.navigate('Detail', { shelterId: item.id })
         }

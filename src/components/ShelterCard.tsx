@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Card } from 'react-native-paper';
+import { useMyShelters } from '../context/MySheltersContext';
 import { Shelter, ShelterWithDistance } from '../types/shelter';
 import { ServiceTag } from './ServiceTag';
 import { formatDistance } from '../data/distanceUtils';
@@ -9,6 +10,8 @@ import { useTheme } from '../theme/useTheme';
 interface Props {
   shelter: Shelter | ShelterWithDistance;
   onPress: () => void;
+  /** When true, shows a "Saved" pill if this shelter is in My Shelter (e.g. search list). */
+  showSavedBadge?: boolean;
 }
 
 function getStatusStyle(status: Shelter['status'], theme: ReturnType<typeof useTheme>) {
@@ -22,10 +25,12 @@ function getStatusStyle(status: Shelter['status'], theme: ReturnType<typeof useT
   }
 }
 
-export function ShelterCard({ shelter, onPress }: Props) {
+export function ShelterCard({ shelter, onPress, showSavedBadge = false }: Props) {
   const theme = useTheme();
+  const { isSaved, isReady } = useMyShelters();
   const statusInfo = getStatusStyle(shelter.status, theme);
   const distance = 'distance' in shelter ? shelter.distance : null;
+  const saved = showSavedBadge && isReady && isSaved(shelter.id);
 
   return (
     <Card
@@ -35,26 +40,41 @@ export function ShelterCard({ shelter, onPress }: Props) {
         { backgroundColor: theme.colors.primarySoft, borderColor: theme.colors.border },
       ]}
       onPress={onPress}
-      accessibilityLabel={`${shelter.name}, ${statusInfo.label}`}
+      accessibilityLabel={`${shelter.name}, ${statusInfo.label}${saved ? ', saved' : ''}`}
     >
       <Card.Content>
         <View style={styles.header}>
           <Text style={[styles.name, { color: theme.colors.text }]} numberOfLines={2}>
             {shelter.name}
           </Text>
-          {distance != null && (
-            <Text
-              style={[
-                styles.distance,
-                {
-                  color: theme.colors.primary,
-                  backgroundColor: theme.colors.surfaceElevated,
-                },
-              ]}
-            >
-              {formatDistance(distance)}
-            </Text>
-          )}
+          <View style={styles.headerBadges}>
+            {saved && (
+              <Text
+                style={[
+                  styles.savedBadge,
+                  {
+                    color: theme.colors.primary,
+                    backgroundColor: theme.colors.surfaceElevated,
+                  },
+                ]}
+              >
+                Saved
+              </Text>
+            )}
+            {distance != null && (
+              <Text
+                style={[
+                  styles.distance,
+                  {
+                    color: theme.colors.primary,
+                    backgroundColor: theme.colors.surfaceElevated,
+                  },
+                ]}
+              >
+                {formatDistance(distance)}
+              </Text>
+            )}
+          </View>
         </View>
 
         <Text
@@ -103,6 +123,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     lineHeight: 21,
+  },
+  headerBadges: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    flexShrink: 0,
+  },
+  savedBadge: {
+    fontSize: 12,
+    fontWeight: '600',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
   },
   distance: {
     fontSize: 12,

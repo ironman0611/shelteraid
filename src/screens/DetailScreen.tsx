@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { ServiceTag } from '../components/ServiceTag';
 import { ActionButton } from '../components/ActionButton';
+import { useMyShelters } from '../context/MySheltersContext';
 import { loadShelters } from '../data/shelterService';
 import { openDialer, openDirections, openWebsite } from '../utils/linking';
 import { Layout } from '../constants/layout';
@@ -30,6 +31,7 @@ function getStatusInfo(
 export function DetailScreen() {
   const theme = useTheme();
   const route = useRoute<RouteProp<DetailParamList, 'Detail'>>();
+  const { isSaved, saveShelter, removeShelter, isReady } = useMyShelters();
   const shelter = loadShelters().find((s) => s.id === route.params.shelterId);
 
   if (!shelter) {
@@ -42,6 +44,21 @@ export function DetailScreen() {
 
   const statusInfo = getStatusInfo(shelter.status, theme);
   const fullAddress = `${shelter.address.street}, ${shelter.address.city}, ${shelter.address.state} ${shelter.address.zip}`;
+  const saved = isSaved(shelter.id);
+
+  const handleMyShelterPress = async () => {
+    if (saved) {
+      await removeShelter(shelter.id);
+      return;
+    }
+    const ok = await saveShelter(shelter.id);
+    if (!ok) {
+      Alert.alert(
+        'My Shelter is full',
+        'You can save up to 5 shelters. Delete one from the My Shelter tab before adding another.',
+      );
+    }
+  };
 
   return (
     <ScrollView
@@ -132,6 +149,22 @@ export function DetailScreen() {
           </View>
         </Section>
       )}
+
+      {/* My Shelter (local only) */}
+      <View style={styles.myShelterRow}>
+        {!isReady ? (
+          <ActivityIndicator color={theme.colors.primary} />
+        ) : (
+          <ActionButton
+            label={saved ? 'Remove from My Shelter' : 'Save to My Shelter'}
+            variant="secondary"
+            onPress={() => void handleMyShelterPress()}
+            accessibilityLabel={
+              saved ? `Remove ${shelter.name} from My Shelter` : `Save ${shelter.name} to My Shelter`
+            }
+          />
+        )}
+      </View>
 
       {/* Actions */}
       <View style={styles.actions}>
@@ -286,10 +319,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textTransform: 'capitalize',
   },
+  myShelterRow: {
+    marginTop: 20,
+    minHeight: 48,
+    justifyContent: 'center',
+  },
   actions: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 24,
+    marginTop: 12,
   },
   lastUpdated: {
     fontSize: Layout.fontSizeXSmall,

@@ -4,7 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Platform, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from 'react-native-paper';
+import { AboutDeveloperScreen } from '../screens/AboutDeveloperScreen';
 import { MapScreen } from '../screens/MapScreen';
+import { MySheltersScreen } from '../screens/MySheltersScreen';
 import { SearchScreen } from '../screens/SearchScreen';
 import { DetailScreen } from '../screens/DetailScreen';
 import { useTheme } from '../theme/useTheme';
@@ -121,6 +123,87 @@ function SearchStackScreen() {
   );
 }
 
+// My Shelter Stack
+type MyStackParamList = {
+  MyMain: undefined;
+  Detail: { shelterId: string };
+};
+
+const MyStack = createNativeStackNavigator<MyStackParamList>();
+
+function MyStackScreen() {
+  const theme = useTheme();
+  return (
+    <MyStack.Navigator>
+      <MyStack.Screen
+        name="MyMain"
+        component={MySheltersScreen}
+        options={{
+          title: 'My Shelter',
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.surface,
+          headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
+        }}
+      />
+      <MyStack.Screen
+        name="Detail"
+        component={DetailScreen}
+        options={({ navigation }) => ({
+          title: 'Shelter Details',
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.surface,
+          headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
+          headerBackVisible: false,
+          headerLeft: () => (
+            <Pressable
+              onPress={() => navigation.goBack()}
+              hitSlop={10}
+              style={{
+                marginRight: 6,
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: theme.colors.primarySoft,
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <Icon source="arrow-left" size={18} color={theme.colors.primary} />
+            </Pressable>
+          ),
+        })}
+      />
+    </MyStack.Navigator>
+  );
+}
+
+// About Developer Stack
+type AboutStackParamList = {
+  AboutMain: undefined;
+};
+
+const AboutStack = createNativeStackNavigator<AboutStackParamList>();
+
+function AboutStackScreen() {
+  const theme = useTheme();
+  return (
+    <AboutStack.Navigator>
+      <AboutStack.Screen
+        name="AboutMain"
+        component={AboutDeveloperScreen}
+        options={{
+          title: 'About Developer',
+          headerStyle: { backgroundColor: theme.colors.primary },
+          headerTintColor: theme.colors.surface,
+          headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
+        }}
+      />
+    </AboutStack.Navigator>
+  );
+}
+
 // Tab Navigator
 const Tab = createBottomTabNavigator();
 
@@ -208,6 +291,52 @@ export function RootNavigator() {
                 }}
               />
               <Icon source="magnify" size={focused ? size + 1 : size} color={color} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="MyShelter"
+        component={MyStackScreen}
+        options={{
+          tabBarLabel: 'My Shelter',
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center', width: 48 }}>
+              <View
+                style={{
+                  height: 3,
+                  width: 22,
+                  borderRadius: 999,
+                  marginBottom: 4,
+                  backgroundColor: focused ? theme.colors.surface : 'transparent',
+                }}
+              />
+              <Icon
+                source={focused ? 'bookmark' : 'bookmark-outline'}
+                size={size}
+                color={color}
+              />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="AboutDeveloper"
+        component={AboutStackScreen}
+        options={{
+          tabBarLabel: 'About',
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center', width: 48 }}>
+              <View
+                style={{
+                  height: 3,
+                  width: 22,
+                  borderRadius: 999,
+                  marginBottom: 4,
+                  backgroundColor: focused ? theme.colors.surface : 'transparent',
+                }}
+              />
+              <Icon source={focused ? 'school' : 'school-outline'} size={size} color={color} />
             </View>
           ),
         }}
