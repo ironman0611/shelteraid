@@ -179,7 +179,7 @@ function MyStackScreen() {
   );
 }
 
-// About Developer Stack
+// About stack
 type AboutStackParamList = {
   AboutMain: undefined;
 };
@@ -194,7 +194,7 @@ function AboutStackScreen() {
         name="AboutMain"
         component={AboutDeveloperScreen}
         options={{
-          title: 'About Developer',
+          title: 'About',
           headerStyle: { backgroundColor: theme.colors.primary },
           headerTintColor: theme.colors.surface,
           headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
