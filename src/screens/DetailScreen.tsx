@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
 import { RouteProp, useRoute } from '@react-navigation/native';
+import { DetailMiniMap } from '../components/DetailMiniMap';
 import { ServiceTag } from '../components/ServiceTag';
 import { ActionButton } from '../components/ActionButton';
 import { useMyShelters } from '../context/MySheltersContext';
@@ -77,21 +77,7 @@ export function DetailScreen() {
 
       {/* Mini Map */}
       <View style={[styles.mapContainer, { borderColor: theme.colors.border }]}>
-        <MapView
-          style={styles.miniMap}
-          initialRegion={{
-            latitude: shelter.coordinates.latitude,
-            longitude: shelter.coordinates.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          pitchEnabled={false}
-          rotateEnabled={false}
-        >
-          <Marker coordinate={shelter.coordinates} />
-        </MapView>
+        <DetailMiniMap coordinates={shelter.coordinates} />
       </View>
 
       {/* Address */}
@@ -268,9 +254,6 @@ const styles = StyleSheet.create({
     borderRadius: Layout.borderRadius,
     overflow: 'hidden',
     borderWidth: 1,
-  },
-  miniMap: {
-    height: 150,
   },
   section: {
     marginTop: 20,

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Shelter, ShelterType, ShelterWithDistance } from '../types/shelter';
+import type { RadiusOption } from '../constants/radius';
 import {
   loadShelters,
   filterByType,
@@ -27,31 +28,43 @@ export function useShelters(
   userLat: number | null,
   userLon: number | null,
   limit?: number,
+  radiusMiles: RadiusOption = 10,
 ): UseSheltersResult {
   const [filters, setFilters] = useState<ShelterType[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
   const { shelters, counts, totalCount } = useMemo(() => {
-    let result: Shelter[] = loadShelters();
-    result = searchShelters(result, searchQuery);
+    let pool: Shelter[] = loadShelters();
+    pool = searchShelters(pool, searchQuery);
 
-    // Counts — single pass, no extra arrays
-    const counts = countByType(result);
+    const hasLoc = userLat != null && userLon != null;
+    const cap = limit ?? (hasLoc ? MAP_LIMIT : LIST_LIMIT);
 
-    result = filterByType(result, filters);
+    // Radius filter: compute distances on search pool, then restrict (counts reflect in-radius only).
+    if (hasLoc && radiusMiles != null) {
+      const withDist = addDistances(pool, userLat, userLon);
+      const inRadius = withDist.filter((s) => s.distance <= radiusMiles);
+      const counts = countByType(inRadius);
+      const result = filterByType(inRadius, filters);
+      const totalCount = result.length;
+      const sorted = sortByDistance(result as ShelterWithDistance[]);
+      return { shelters: sorted.slice(0, cap), counts, totalCount };
+    }
+
+    // No radius cap (or no location): same flow as before — type filter before distance for "Any" + location.
+    const counts = countByType(pool);
+    const result = filterByType(pool, filters);
     const totalCount = result.length;
 
-    if (userLat != null && userLon != null) {
+    if (hasLoc) {
       const withDist = addDistances(result, userLat, userLon);
       const sorted = sortByDistance(withDist);
-      const cap = limit ?? MAP_LIMIT;
       return { shelters: sorted.slice(0, cap), counts, totalCount };
     }
 
     const sorted = sortAlphabetically(result);
-    const cap = limit ?? LIST_LIMIT;
     return { shelters: sorted.slice(0, cap), counts, totalCount };
-  }, [filters, searchQuery, userLat, userLon, limit]);
+  }, [filters, searchQuery, userLat, userLon, limit, radiusMiles]);
 
   return { shelters, filters, setFilters, searchQuery, setSearchQuery, counts, totalCount };
 }

@@ -1,17 +1,20 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import MapView, { Region } from 'react-native-maps';
-import ClusteredMapView from 'react-native-map-clustering';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShelterMapMarker } from '../components/ShelterMapMarker';
 import { FilterChips } from '../components/FilterChips';
+import { RadiusChips } from '../components/RadiusChips';
+import { MapPinLegend } from '../components/MapPinLegend';
 import { NearMeButton } from '../components/NearMeButton';
+import { DEFAULT_RADIUS_MILES, RadiusOption } from '../constants/radius';
 import { useLocation } from '../hooks/useLocation';
 import { useShelters } from '../hooks/useShelters';
 import { ShelterType, ShelterWithDistance } from '../types/shelter';
 import { formatDistance } from '../data/distanceUtils';
+import { regionForSearchRadius } from '../utils/mapRegion';
 import { useTheme } from '../theme/useTheme';
 
 type MapStackParamList = {
@@ -33,21 +36,31 @@ export function MapScreen() {
   const { location, requestPermission } = useLocation();
   const navigation =
     useNavigation<NativeStackNavigationProp<MapStackParamList>>();
+  const [radiusMiles, setRadiusMiles] = useState<RadiusOption>(DEFAULT_RADIUS_MILES);
 
   const { shelters, filters, setFilters, counts, totalCount } = useShelters(
     location?.latitude ?? null,
     location?.longitude ?? null,
     200,
+    radiusMiles,
   );
 
   const region: Region = location
-    ? {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        latitudeDelta: 0.15,
-        longitudeDelta: 0.15,
-      }
+    ? regionForSearchRadius(location.latitude, location.longitude, radiusMiles)
     : DEFAULT_REGION;
+
+  useEffect(() => {
+    if (!location) return;
+    const next = regionForSearchRadius(
+      location.latitude,
+      location.longitude,
+      radiusMiles,
+    );
+    const t = requestAnimationFrame(() => {
+      mapRef.current?.animateToRegion(next, 450);
+    });
+    return () => cancelAnimationFrame(t);
+  }, [location, radiusMiles]);
 
   const handleToggleFilter = useCallback(
     (type: ShelterType) => {
@@ -63,34 +76,24 @@ export function MapScreen() {
   const handleNearMe = useCallback(() => {
     if (location && mapRef.current) {
       mapRef.current.animateToRegion(
-        {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.08,
-          longitudeDelta: 0.08,
-        },
+        regionForSearchRadius(location.latitude, location.longitude, radiusMiles),
         500,
       );
     } else {
       requestPermission();
     }
-  }, [location, requestPermission]);
+  }, [location, requestPermission, radiusMiles]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ClusteredMapView
+      <MapView
         ref={mapRef}
         style={styles.map}
         initialRegion={region}
         showsUserLocation
         showsMyLocationButton={false}
-        clusterColor={theme.colors.primary}
-        clusterTextColor={theme.colors.surface}
-        clusterFontFamily="System"
-        radius={50}
         minZoomLevel={0}
         maxZoomLevel={20}
-        animationEnabled={false}
       >
         {shelters.map((shelter) => (
           <ShelterMapMarker
@@ -106,7 +109,7 @@ export function MapScreen() {
             }
           />
         ))}
-      </ClusteredMapView>
+      </MapView>
 
       <View
         style={[
@@ -115,6 +118,22 @@ export function MapScreen() {
         ]}
       >
         <FilterChips selected={filters} onToggle={handleToggleFilter} counts={counts} />
+        <RadiusChips
+          radiusMiles={radiusMiles}
+          onSelect={setRadiusMiles}
+          locationAvailable={location != null}
+        />
+      </View>
+
+      <View
+        style={[
+          styles.legendWrap,
+          {
+            bottom: insets.bottom + 56,
+          },
+        ]}
+      >
+        <MapPinLegend />
       </View>
 
       <View
@@ -123,7 +142,7 @@ export function MapScreen() {
           {
             backgroundColor: theme.colors.primarySoft,
             borderColor: theme.colors.border,
-            bottom: insets.bottom + 18,
+            bottom: insets.bottom + 16,
           },
         ]}
       >
@@ -155,6 +174,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  legendWrap: {
+    position: 'absolute',
+    left: 16,
+    right: 88,
   },
   countBadge: {
     position: 'absolute',

@@ -4,7 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SearchBar } from '../components/SearchBar';
 import { FilterChips } from '../components/FilterChips';
+import { RadiusChips } from '../components/RadiusChips';
 import { ShelterCard } from '../components/ShelterCard';
+import { DEFAULT_RADIUS_MILES, RadiusOption } from '../constants/radius';
 import { useLocation } from '../hooks/useLocation';
 import { useShelters } from '../hooks/useShelters';
 import { Shelter, ShelterType } from '../types/shelter';
@@ -24,12 +26,14 @@ export function SearchScreen() {
     useNavigation<NativeStackNavigationProp<SearchStackParamList>>();
 
   const [listLimit, setListLimit] = useState(PAGE_SIZE);
+  const [radiusMiles, setRadiusMiles] = useState<RadiusOption>(DEFAULT_RADIUS_MILES);
 
   const { shelters, filters, setFilters, searchQuery, setSearchQuery, counts, totalCount } =
     useShelters(
       location?.latitude ?? null,
       location?.longitude ?? null,
       listLimit,
+      radiusMiles,
     );
 
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -41,6 +45,10 @@ export function SearchScreen() {
     }, 300);
     return () => clearTimeout(timer);
   }, [debouncedQuery, setSearchQuery]);
+
+  useEffect(() => {
+    setListLimit(PAGE_SIZE);
+  }, [radiusMiles]);
 
   const handleToggleFilter = useCallback(
     (type: ShelterType) => {
@@ -77,6 +85,11 @@ export function SearchScreen() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <SearchBar value={debouncedQuery} onChangeText={setDebouncedQuery} />
       <FilterChips selected={filters} onToggle={handleToggleFilter} counts={counts} />
+      <RadiusChips
+        radiusMiles={radiusMiles}
+        onSelect={setRadiusMiles}
+        locationAvailable={location != null}
+      />
 
       <FlatList
         data={shelters}
@@ -90,7 +103,9 @@ export function SearchScreen() {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           <Text style={[styles.empty, { color: theme.colors.textSecondary }]}>
-            No shelters found. Try a different search or filter.
+            {location != null && radiusMiles != null
+              ? 'No shelters in this distance. Try a larger radius, different filters, or search.'
+              : 'No shelters found. Try a different search or filter.'}
           </Text>
         }
         ListFooterComponent={

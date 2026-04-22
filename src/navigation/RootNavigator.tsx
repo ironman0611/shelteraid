@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from 'react-native-paper';
 import { AboutDeveloperScreen } from '../screens/AboutDeveloperScreen';
@@ -36,32 +36,13 @@ function MapStackScreen() {
       <MapStack.Screen
         name="Detail"
         component={DetailScreen}
-        options={({ navigation }) => ({
+        options={{
           title: 'Shelter Details',
           headerStyle: { backgroundColor: theme.colors.primary },
           headerTintColor: theme.colors.surface,
           headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
-          headerBackVisible: false,
-          headerLeft: () => (
-            <Pressable
-              onPress={() => navigation.goBack()}
-              hitSlop={10}
-              style={{
-                marginRight: 6,
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: theme.colors.primarySoft,
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-            >
-              <Icon source="arrow-left" size={18} color={theme.colors.primary} />
-            </Pressable>
-          ),
-        })}
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
     </MapStack.Navigator>
   );
@@ -92,32 +73,13 @@ function SearchStackScreen() {
       <SearchStack.Screen
         name="Detail"
         component={DetailScreen}
-        options={({ navigation }) => ({
+        options={{
           title: 'Shelter Details',
           headerStyle: { backgroundColor: theme.colors.primary },
           headerTintColor: theme.colors.surface,
           headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
-          headerBackVisible: false,
-          headerLeft: () => (
-            <Pressable
-              onPress={() => navigation.goBack()}
-              hitSlop={10}
-              style={{
-                marginRight: 6,
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: theme.colors.primarySoft,
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-            >
-              <Icon source="arrow-left" size={18} color={theme.colors.primary} />
-            </Pressable>
-          ),
-        })}
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
     </SearchStack.Navigator>
   );
@@ -148,32 +110,13 @@ function MyStackScreen() {
       <MyStack.Screen
         name="Detail"
         component={DetailScreen}
-        options={({ navigation }) => ({
+        options={{
           title: 'Shelter Details',
           headerStyle: { backgroundColor: theme.colors.primary },
           headerTintColor: theme.colors.surface,
           headerTitleStyle: { color: theme.colors.surface, fontWeight: '600' },
-          headerBackVisible: false,
-          headerLeft: () => (
-            <Pressable
-              onPress={() => navigation.goBack()}
-              hitSlop={10}
-              style={{
-                marginRight: 6,
-                width: 28,
-                height: 28,
-                borderRadius: 14,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: theme.colors.primarySoft,
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-            >
-              <Icon source="arrow-left" size={18} color={theme.colors.primary} />
-            </Pressable>
-          ),
-        })}
+          headerBackButtonDisplayMode: 'minimal',
+        }}
       />
     </MyStack.Navigator>
   );
