@@ -40,7 +40,8 @@
     },
     "plugins": [
       "expo-location",
-      "expo-splash-screen"
+      "expo-splash-screen",
+      "expo-status-bar"
     ],
     "extra": {
       "eas": {

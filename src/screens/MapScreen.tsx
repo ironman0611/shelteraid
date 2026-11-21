@@ -22,6 +22,12 @@ type MapStackParamList = {
   Detail: { shelterId: string };
 };
 
+/** Matches the ~420 mi framing `regionForSearchRadius` uses for "Any". */
+const ANY_RADIUS_VIEW_MILES = 400;
+/** Only keep the user's own position in the fitted view when shelters are reasonably close. */
+const INCLUDE_USER_IN_FIT_MILES = 150;
+const FIT_PADDING = { top: 180, right: 60, bottom: 160, left: 60 };
+
 const DEFAULT_REGION: Region = {
   latitude: 39.8283,
   longitude: -98.5795,
@@ -38,7 +44,7 @@ export function MapScreen() {
     useNavigation<NativeStackNavigationProp<MapStackParamList>>();
   const [radiusMiles, setRadiusMiles] = useState<RadiusOption>(DEFAULT_RADIUS_MILES);
 
-  const { shelters, filters, setFilters, counts, totalCount } = useShelters(
+  const { shelters, filters, setFilters, counts, totalCount, outsideRadius } = useShelters(
     location?.latitude ?? null,
     location?.longitude ?? null,
     200,
@@ -49,18 +55,45 @@ export function MapScreen() {
     ? regionForSearchRadius(location.latitude, location.longitude, radiusMiles)
     : DEFAULT_REGION;
 
+  const nearestMiles =
+    shelters.length > 0 && 'distance' in shelters[0]
+      ? (shelters[0] as ShelterWithDistance).distance
+      : null;
+
+  // When the results aren't around the user (nothing in radius, or "Any" with the nearest
+  // shelter far away), frame the map on the shelters instead of the user's position.
+  const needsFit =
+    location != null &&
+    shelters.length > 0 &&
+    (outsideRadius ||
+      (radiusMiles == null && nearestMiles != null && nearestMiles > ANY_RADIUS_VIEW_MILES));
+  const fitKey = needsFit ? `${shelters.length}:${shelters[0].id}` : '';
+
+  const fitToResults = useCallback(() => {
+    if (!location || !mapRef.current) return;
+    const coords = shelters.map((s) => s.coordinates);
+    if (nearestMiles != null && nearestMiles <= INCLUDE_USER_IN_FIT_MILES) {
+      coords.push({ latitude: location.latitude, longitude: location.longitude });
+    }
+    mapRef.current.fitToCoordinates(coords, { edgePadding: FIT_PADDING, animated: true });
+  }, [location, shelters, nearestMiles]);
+
   useEffect(() => {
     if (!location) return;
-    const next = regionForSearchRadius(
-      location.latitude,
-      location.longitude,
-      radiusMiles,
-    );
     const t = requestAnimationFrame(() => {
-      mapRef.current?.animateToRegion(next, 450);
+      if (needsFit) {
+        fitToResults();
+      } else {
+        mapRef.current?.animateToRegion(
+          regionForSearchRadius(location.latitude, location.longitude, radiusMiles),
+          450,
+        );
+      }
     });
     return () => cancelAnimationFrame(t);
-  }, [location, radiusMiles]);
+    // fitKey captures result changes; fitToResults is intentionally read fresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, radiusMiles, needsFit, fitKey]);
 
   const handleToggleFilter = useCallback(
     (type: ShelterType) => {
@@ -74,7 +107,9 @@ export function MapScreen() {
   );
 
   const handleNearMe = useCallback(() => {
-    if (location && mapRef.current) {
+    if (needsFit) {
+      fitToResults();
+    } else if (location && mapRef.current) {
       mapRef.current.animateToRegion(
         regionForSearchRadius(location.latitude, location.longitude, radiusMiles),
         500,
@@ -82,7 +117,7 @@ export function MapScreen() {
     } else {
       requestPermission();
     }
-  }, [location, requestPermission, radiusMiles]);
+  }, [location, requestPermission, radiusMiles, needsFit, fitToResults]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -123,6 +158,17 @@ export function MapScreen() {
           onSelect={setRadiusMiles}
           locationAvailable={location != null}
         />
+        {outsideRadius && nearestMiles != null && (
+          <Text
+            style={[styles.notice, { color: theme.colors.textSecondary }]}
+            accessibilityRole="alert"
+          >
+            {`No shelters within ${radiusMiles} mi. Showing the ${shelters.length} nearest (closest is ${formatDistance(nearestMiles)} away).`}
+            {nearestMiles > ANY_RADIUS_VIEW_MILES
+              ? ' Shelter Aid currently covers U.S. locations only.'
+              : ''}
+          </Text>
+        )}
       </View>
 
       <View
@@ -174,6 +220,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  notice: {
+    fontSize: 12,
+    lineHeight: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   legendWrap: {
     position: 'absolute',

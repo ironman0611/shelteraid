@@ -28,7 +28,16 @@ export function SearchScreen() {
   const [listLimit, setListLimit] = useState(PAGE_SIZE);
   const [radiusMiles, setRadiusMiles] = useState<RadiusOption>(DEFAULT_RADIUS_MILES);
 
-  const { shelters, filters, setFilters, searchQuery, setSearchQuery, counts, totalCount } =
+  const {
+    shelters,
+    filters,
+    setFilters,
+    searchQuery,
+    setSearchQuery,
+    counts,
+    totalCount,
+    outsideRadius,
+  } =
     useShelters(
       location?.latitude ?? null,
       location?.longitude ?? null,
@@ -101,6 +110,13 @@ export function SearchScreen() {
         windowSize={5}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
+        ListHeaderComponent={
+          outsideRadius ? (
+            <Text style={[styles.notice, { color: theme.colors.textSecondary }]}>
+              {`No shelters within ${radiusMiles} mi — showing the nearest matches instead.`}
+            </Text>
+          ) : undefined
+        }
         ListEmptyComponent={
           <Text style={[styles.empty, { color: theme.colors.textSecondary }]}>
             {location != null && radiusMiles != null
@@ -113,7 +129,7 @@ export function SearchScreen() {
             <Text style={[styles.loadMore, { color: theme.colors.textSecondary }]}>
               Showing {shelters.length} of {totalCount} — scroll for more
             </Text>
-          ) : null
+          ) : undefined
         }
       />
     </View>
@@ -127,6 +143,10 @@ const styles = StyleSheet.create({
   list: {
     padding: 16,
     paddingTop: 8,
+  },
+  notice: {
+    fontSize: 13,
+    paddingBottom: 8,
   },
   empty: {
     textAlign: 'center',
